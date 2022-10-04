@@ -32,10 +32,29 @@ def main():
     print(gs.board)
     load_images()  # only do this once, before the while loop
     running = True
+    sqSelected = ()  # no square is selected, keep track of the last click of the used (tuple: (row, col))
+    playerClicks = []  # keep track of player clicks (two tuples: [(6, 4), (5, 3)])
     while running:
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
+            elif e.type == p.MOUSEBUTTONDOWN:
+                location = p.mouse.get_pos()  # (x, y) location of mouse
+                col = location[0] // SQ_SIZE
+                row = location[1] // SQ_SIZE
+                if sqSelected == (row, col):  # the user clicked the same square
+                    sqSelected = ()  # deselect
+                    playerClicks = []  # clear player clicks
+                else:
+                    sqSelected = (row, col)
+                    playerClicks.append(sqSelected)  # append for both 1st and 2nd clicks
+                if len(playerClicks) == 2:  # after 2nd click
+                    move = CheckersEngine.Move(playerClicks[0], playerClicks[1], gs.board)
+                    print(move.get_checkers_notation())
+                    gs.make_move(move)
+                    sqSelected = ()  # reset user clicks
+                    playerClicks = []
+
         draw_game_state(screen, gs)
         clock.tick(MAX_FPS)
         p.display.flip()
