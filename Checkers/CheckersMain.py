@@ -53,13 +53,16 @@ def main():
                     playerClicks.append(sqSelected)  # append for both 1st and 2nd clicks
                 if len(playerClicks) == 2:  # after 2nd click
                     move = CheckersEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                    print(move.get_checkers_notation())
+                    # print(move.get_checkers_notation())
+
                     if move in valid_moves:
                         gs.make_move(move)
                         move_made = True
-                    sqSelected = ()  # reset user clicks
-                    playerClicks = []
-                #key handle
+                        sqSelected = ()  # reset user clicks
+                        playerClicks = []
+                    else:
+                        playerClicks = [sqSelected]
+            # key handle
             elif e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_z:  # undo when 'z' is pressed
                     gs.undo_move()
@@ -68,6 +71,9 @@ def main():
         if move_made:
             valid_moves = gs.get_valid_moves()
             move_made = False
+            for v in valid_moves:
+                print(v)
+            print("***************")
 
         draw_game_state(screen, gs)
         clock.tick(MAX_FPS)

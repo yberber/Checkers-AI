@@ -1,2 +1,4 @@
 .idea
 Checkers/__pycache__
+.DS_Store
+Checkers/.DS_Store
