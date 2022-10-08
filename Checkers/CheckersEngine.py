@@ -57,6 +57,10 @@ class GameState:
         self.move_log.append(move)  # log the move so we can undo it later
         self.white_to_move = not self.white_to_move  # switch turns
 
+        # man promotion to king
+        if move.is_man_promotion:
+            self.board[move.end_row][move.end_col] = move.piece_moved[0] + "k"
+
     # Undo the last move made
     def undo_move(self):
         if len(self.move_log):  # make sure that there is a move to undo
@@ -128,7 +132,6 @@ class GameState:
                     moves_with_captures.append(Move((row, col), (end_row, end_col), self.board, piece,
                                                     (next_row, next_col)))
 
-
     def find_captures_by_directions(self, row, col, enemy_color, directions):
         pass
 
@@ -181,6 +184,9 @@ class Move:
         self.captured_piece_pos = captured_piece_pos
         self.move_id = self.start_row * 1000 + self.start_col * 100 + self.end_row * 10 + self.end_col
 
+        self.is_man_promotion = self.piece_moved == "wm" and self.end_row == 0 or \
+                                self.piece_moved == "bm" and self.end_row == 9
+
     def get_checkers_notation(self):
         return self.get_square_position(self.start_row, self.start_col), \
                self.get_square_position(self.end_row, self.end_col)
@@ -197,4 +203,3 @@ class Move:
     def __str__(self):
         return f"({self.start_row}, {self.start_col}) -> ({self.end_row}, {self.end_col}),  " \
                f"x({self.captured_piece})"
-

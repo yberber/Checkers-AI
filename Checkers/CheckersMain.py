@@ -97,6 +97,7 @@ def highlight_possible_squares_for_selected_piece(screen, possible_moves):
         pygame.draw.rect(screen, (220, 220, 220),
                          pygame.Rect(move.end_col * SQ_SIZE, move.end_row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
+
 # Draw the squares on the board.
 def draw_board(screen):
     for y in range(10):
