@@ -78,24 +78,31 @@ def main():
             valid_moves = gs.get_valid_moves()
             move_made = False
 
-        draw_game_state(screen, gs, possible_moves_for_selected)
+        draw_game_state(screen, gs, possible_moves_for_selected, sqSelected)
         clock.tick(MAX_FPS)
         pygame.display.flip()
 
 
 # Responsible for all the graphics within a current game state.
-def draw_game_state(screen, gs, possible_moves):
+def draw_game_state(screen, gs, possible_moves, sq_selected):
     draw_board(screen)  # draw squares on the board
-    # add in piece highlighting or move suggestions (later)
-    highlight_possible_squares_for_selected_piece(screen, possible_moves)
-
+    highlight_squares(screen, gs, possible_moves, sq_selected)
     draw_pieces(screen, gs.board)  # draw pieces on top of those squares
 
 
-def highlight_possible_squares_for_selected_piece(screen, possible_moves):
-    for move in possible_moves:
-        pygame.draw.rect(screen, (220, 220, 220),
-                         pygame.Rect(move.end_col * SQ_SIZE, move.end_row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+# Highlight square selected and moves for piece selected
+def highlight_squares(screen, gs, possible_moves, sq_selected):
+    if sq_selected != ():
+        row, col = sq_selected
+        if gs.board[row][col][0] == ("w" if gs.white_to_move else "b"):  # sq_selected is a piece that can be moved
+            surface = pygame.Surface((SQ_SIZE, SQ_SIZE))
+            surface.set_alpha(100)  # transparancy value -> 0 0 transparent; 255 opaque
+            surface.fill(pygame.Color("blue"))
+            screen.blit(surface, (col * SQ_SIZE, row * SQ_SIZE))
+            # highlight moves from that square
+            surface.fill(pygame.Color("yellow"))
+            for move in possible_moves:
+                screen.blit(surface, (move.end_col * SQ_SIZE, move.end_row * SQ_SIZE))
 
 
 # Draw the squares on the board.
