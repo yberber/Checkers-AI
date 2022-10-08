@@ -140,8 +140,8 @@ class GameState:
         directions = ((-1, -1), (-1, 1), (1, -1), (1, 1))
         for d in directions:
             for i in range(1, 10):
-                end_row = row + d * i
-                end_col = col + d * i
+                end_row = row + d[0] * i
+                end_col = col + d[1] * i
                 if self.is_on_board(end_row, end_col):  # on board
                     end_piece = self.board[end_row][end_col]
                     if end_piece == "--":  # empty space valid
