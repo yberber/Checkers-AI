@@ -73,7 +73,15 @@ class GameState:
 
     # All moves considering rules (for e., the move that captures the greatest number of pieces must be made.)
     def get_valid_moves(self):
-        return self.get_all_possible_moves()  # for now, we will not worry about some rules
+        self.valid_moves = self.get_all_possible_moves()
+        return self.valid_moves  # for now, we will not worry about some rules
+
+    def get_valid_moves_for_selected_piece(self, sq_selected):
+        valid_moves_for_selected_piece = []
+        for move in self.valid_moves:
+            if sq_selected == (move.start_row, move.start_col):
+                valid_moves_for_selected_piece.append(move)
+        return valid_moves_for_selected_piece
 
     # All moves without considering rules
     def get_all_possible_moves(self):
@@ -191,3 +199,4 @@ class Move:
     def __str__(self):
         return f"({self.start_row}, {self.start_col}) -> ({self.end_row}, {self.end_col}),  " \
                f"x({self.captured_piece})"
+

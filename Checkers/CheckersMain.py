@@ -29,13 +29,13 @@ def main():
     clock = pygame.time.Clock()
     screen.fill((255, 255, 255))
     gs = CheckersEngine.GameState()
-    print(gs.board)
     valid_moves = gs.get_valid_moves()
     move_made = False  # flag variable for when a move is made
     load_images()  # only do this once, before the while loop
     running = True
     sqSelected = ()  # no square is selected, keep track of the last click of the used (tuple: (row, col))
     playerClicks = []  # keep track of player clicks (two tuples: [(6, 4), (5, 3)])
+    possible_moves_for_selected = []
     while running:
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
@@ -48,12 +48,15 @@ def main():
                 if sqSelected == (row, col):  # the user clicked the same square
                     sqSelected = ()  # deselect
                     playerClicks = []  # clear player clicks
+                    possible_moves_for_selected = []
                 else:
                     sqSelected = (row, col)
                     playerClicks.append(sqSelected)  # append for both 1st and 2nd clicks
+                if len(playerClicks) == 1:
+                    possible_moves_for_selected = gs.get_valid_moves_for_selected_piece(sqSelected)
                 if len(playerClicks) == 2:  # after 2nd click
                     move = CheckersEngine.Move(playerClicks[0], playerClicks[1], gs.board)
-                    # print(move.get_checkers_notation())
+                    possible_moves_for_selected = []
 
                     if move in valid_moves:
                         gs.make_move(move)
@@ -62,6 +65,8 @@ def main():
                         playerClicks = []
                     else:
                         playerClicks = [sqSelected]
+                        possible_moves_for_selected = gs.get_valid_moves_for_selected_piece(sqSelected)
+
             # key handle
             elif e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_z:  # undo when 'z' is pressed
@@ -71,21 +76,25 @@ def main():
         if move_made:
             valid_moves = gs.get_valid_moves()
             move_made = False
-            for v in valid_moves:
-                print(v)
-            print("***************")
 
-        draw_game_state(screen, gs)
+        draw_game_state(screen, gs, possible_moves_for_selected)
         clock.tick(MAX_FPS)
         pygame.display.flip()
 
 
 # Responsible for all the graphics within a current game state.
-def draw_game_state(screen, gs):
+def draw_game_state(screen, gs, possible_moves):
     draw_board(screen)  # draw squares on the board
     # add in piece highlighting or move suggestions (later)
+    highlight_possible_squares_for_selected_piece(screen, possible_moves)
+
     draw_pieces(screen, gs.board)  # draw pieces on top of those squares
 
+
+def highlight_possible_squares_for_selected_piece(screen, possible_moves):
+    for move in possible_moves:
+        pygame.draw.rect(screen, (220, 220, 220),
+                         pygame.Rect(move.end_col * SQ_SIZE, move.end_row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
 # Draw the squares on the board.
 def draw_board(screen):
