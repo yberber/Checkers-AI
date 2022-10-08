@@ -58,12 +58,13 @@ def main():
                     move = CheckersEngine.Move(playerClicks[0], playerClicks[1], gs.board)
                     possible_moves_for_selected = []
 
-                    if move in valid_moves:
-                        gs.make_move(move)
-                        move_made = True
-                        sqSelected = ()  # reset user clicks
-                        playerClicks = []
-                    else:
+                    for i in range(len(valid_moves)):
+                        if move == valid_moves[i]:
+                            gs.make_move(valid_moves[i])
+                            move_made = True
+                            sqSelected = ()  # reset user clicks
+                            playerClicks = []
+                    if not move_made:
                         playerClicks = [sqSelected]
                         possible_moves_for_selected = gs.get_valid_moves_for_selected_piece(sqSelected)
 

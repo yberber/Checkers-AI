@@ -26,6 +26,7 @@ class GameState:
         # the second character represents the type of the piece, p, k
         # "--" - represents an empty space with no piece
         # Note: list will be converted to numpy array for efficiency later
+        self.valid_moves = None
         self.board = [
             ["--", "bm", "--", "bm", "--", "bm", "--", "bm", "--", "bm"],
             ["bm", "--", "bm", "--", "bm", "--", "bm", "--", "bm", "--"],
@@ -127,6 +128,7 @@ class GameState:
                     moves_with_captures.append(Move((row, col), (end_row, end_col), self.board, piece,
                                                     (next_row, next_col)))
 
+
     def find_captures_by_directions(self, row, col, enemy_color, directions):
         pass
 
@@ -190,11 +192,7 @@ class Move:
     # Overriding the equals method
     def __eq__(self, other):
         if isinstance(other, Move):
-            if self.move_id == other.move_id:
-                other.captured_piece = self.captured_piece
-                other.captured_piece_pos = self.captured_piece_pos
-                return True
-        return False
+            return self.move_id == other.move_id
 
     def __str__(self):
         return f"({self.start_row}, {self.start_col}) -> ({self.end_row}, {self.end_col}),  " \
