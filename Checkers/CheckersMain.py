@@ -75,6 +75,13 @@ def main():
                 if e.key == pygame.K_z:  # undo when 'z' is pressed
                     gs.undo_move()
                     valid_moves = gs.get_valid_moves()
+                if e.key == pygame.K_r:  # reset the board when 'r' is pressed
+                    gs = CheckersEngine.GameState()
+                    player_clicks = []
+                    sq_selected = ()
+                    valid_moves = gs.get_valid_moves()
+                    possible_moves_for_selected = []
+                    move_made = False
 
         if move_made:
             animate_move(gs.move_log[-1], screen, gs.board, clock)
@@ -132,7 +139,7 @@ def animate_move(move, screen, board, clock):
     global colors
     dR = move.end_row - move.start_row
     dC = move.end_col - move.start_col
-    frames_per_square = 8  # frames to move one square
+    frames_per_square = 80  # frames to move one square
     frame_count = int(math.sqrt(dR*dR + dC*dC) * frames_per_square)
     for frame in range(frame_count + 1):
         d_frame = frame/frame_count
