@@ -2,6 +2,7 @@
 This is out main driver file/ It will be responsible for handling
 user input and displaying the current GameState object.
 """
+import math
 
 import pygame
 from Checkers import CheckersEngine
@@ -73,9 +74,10 @@ def main():
             elif e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_z:  # undo when 'z' is pressed
                     gs.undo_move()
-                    move_made = True
+                    valid_moves = gs.get_valid_moves()
 
         if move_made:
+            animate_move(gs.move_log[-1], screen, gs.board, clock)
             valid_moves = gs.get_valid_moves()
             move_made = False
 
@@ -108,6 +110,7 @@ def highlight_squares(screen, gs, possible_moves, sq_selected):
 
 # Draw the squares on the board.
 def draw_board(screen):
+    global colors
     colors = [pygame.Color("white"), pygame.Color("gray")]
     for row in range(DIMENSION):
         for col in range(DIMENSION):
@@ -122,6 +125,32 @@ def draw_pieces(screen, board):
             piece = board[row][col]
             if piece != "--":  # not empty square
                 screen.blit(IMAGES[piece], pygame.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+
+
+# animating a move
+def animate_move(move, screen, board, clock):
+    global colors
+    dR = move.end_row - move.start_row
+    dC = move.end_col - move.start_col
+    frames_per_square = 8  # frames to move one square
+    frame_count = int(math.sqrt(dR*dR + dC*dC) * frames_per_square)
+    for frame in range(frame_count + 1):
+        d_frame = frame/frame_count
+        row, col = (move.start_row + dR * d_frame, move.start_col + dC * d_frame)
+        draw_board(screen)
+        draw_pieces(screen, board)
+        # erase the piece moved from its ending square
+        color = colors[(move.end_row + move.end_col) % 2]
+        end_square = pygame.Rect(move.end_col*SQ_SIZE, move.end_row*SQ_SIZE, SQ_SIZE, SQ_SIZE)
+        pygame.draw.rect(screen, color, end_square)
+        if move.captured_piece != "--":
+            captured_row, captured_col = move.captured_piece_pos
+            screen.blit(IMAGES[move.captured_piece], [captured_col * SQ_SIZE, captured_row * SQ_SIZE, SQ_SIZE, SQ_SIZE])
+        # draw moving piece
+        screen.blit(IMAGES[move.piece_moved], pygame.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+        pygame.display.flip()
+        pygame.display.update()
+        clock.tick(60)
 
 
 # main function is going to run if CheckersMain is run.
