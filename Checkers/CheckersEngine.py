@@ -27,6 +27,7 @@ class GameState:
         # "--" - represents an empty space with no piece
         # Note: list will be converted to numpy array for efficiency later
         self.valid_moves = None
+        self.single_valid_moves = None
         self.board = [
             ["--", "bm", "--", "bm", "--", "bm", "--", "bm", "--", "bm"],
             ["bm", "--", "bm", "--", "bm", "--", "bm", "--", "bm", "--"],
@@ -47,6 +48,7 @@ class GameState:
 
         self.white_to_move = True
         self.move_log = []
+        self.left_capture_count = 0
 
     def make_move(self, move):
         self.board[move.start_row][move.start_col] = "--"
@@ -56,6 +58,10 @@ class GameState:
             self.board[row][col] = "--"
         self.move_log.append(move)  # log the move so we can undo it later
         self.white_to_move = not self.white_to_move  # switch turns
+        if self.left_capture_count:
+            self.left_capture_count -= 1
+            if self.left_capture_count:
+                self.white_to_move = not self.white_to_move  # switch turns
 
         # man promotion to king
         if move.is_man_promotion:
@@ -66,24 +72,52 @@ class GameState:
         if len(self.move_log):  # make sure that there is a move to undo
             move = self.move_log.pop()
             self.board[move.start_row][move.start_col] = move.piece_moved
-            self.board[move.end_row][move.end_col] = move.captured_piece
-            self.white_to_move = not self.white_to_move  # switch turns
-
-    def undo_move_by_move(self, move):
-        self.board[move.start_row][move.start_col] = move.piece_moved
-        self.board[move.end_row][move.end_col] = move.captured_piece
-        if move.captured_piece != "--":
-            self.board[move.captured_piece_pos[0]][move.captured_piece_pos[1]] = move.captured_piece
-        self.white_to_move = not self.white_to_move  # switch turns
+            self.board[move.end_row][move.end_col] = "--"
+            if move.captured_piece != "--":
+                self.board[move.captured_piece_pos[0]][move.captured_piece_pos[1]] = move.captured_piece
+            # if move.is_man_promotion:
+            #     self.board[move.end_row][move.end_col] = move.piece_moved[0] + "k"
+            if self.left_capture_count:
+                self.left_capture_count+=1
+                if not (type(self.valid_moves[0]) == list and len(self.valid_moves[0]) >= self.left_capture_count):
+                    self.left_capture_count = 0
+            if self.left_capture_count == 0:
+                self.white_to_move = not self.white_to_move  # switch turns
 
     # All moves considering rules (for e., the move that captures the greatest number of pieces must be made.)
     def get_valid_moves(self):
-        self.valid_moves = self.get_all_possible_moves()
-        return self.valid_moves  # for now, we will not worry about some rules
+
+        self.single_valid_moves = []
+        if self.left_capture_count <= 0:
+            self.valid_moves = self.get_all_possible_moves()
+            if self.left_capture_count > 0:
+                for i in range(len(self.valid_moves) - 1, -1, -1):
+                    self.single_valid_moves.append(self.valid_moves[i][0])
+            else:
+                self.single_valid_moves = self.valid_moves
+        elif self.left_capture_count > 0:
+            max_move = len(self.valid_moves[0])
+            for i in range(len(self.valid_moves) - 1, -1, -1):
+                equal = True
+                for j in range(0, max_move-self.left_capture_count):
+                    if not (self.move_log[-(max_move-self.left_capture_count)+j] is self.valid_moves[i][j]):
+                        equal = False
+                        break
+                if equal:
+                    self.single_valid_moves.append(self.valid_moves[i][max_move - self.left_capture_count])
+                # if self.move_log[-1] is self.valid_moves[i][max_move-self.left_capture_count-1]:
+                    # self.valid_moves[i].pop(0)
+                    # self.single_valid_moves.append(self.valid_moves[i][max_move-self.left_capture_count])
+                else:
+                    pass
+                    # self.valid_moves.pop(i)
+            # last_move = self.move_log.pop()
+
+        return self.single_valid_moves  # for now, we will not worry about some rules
 
     def get_valid_moves_for_selected_piece(self, sq_selected):
         valid_moves_for_selected_piece = []
-        for move in self.valid_moves:
+        for move in self.single_valid_moves:
             if sq_selected == (move.start_row, move.start_col):
                 valid_moves_for_selected_piece.append(move)
         return valid_moves_for_selected_piece
@@ -101,6 +135,7 @@ class GameState:
                     self.move_functions[piece](row, col, moves)
 
         if len(moves_with_captures) != 0:
+            self.left_capture_count = len(moves_with_captures[0])
             return moves_with_captures
 
         return moves
@@ -116,11 +151,11 @@ class GameState:
             if self.is_on_board(end_row, end_col) and self.board[end_row][end_col] == "--":
                 moves.append(Move((row, col), (end_row, end_col), self.board))
 
-    def get_man_captures(self, row, col, moves_with_captures, enemy_color=None):
+    def get_man_captures(self, row, col, moves_with_captures, enemy_color=None, found_capture_list=[]):
         directions = ((-1, -1), (-1, 1), (1, -1), (1, 1))
         if enemy_color is None:
             enemy_color = "b" if self.white_to_move else "w"
-        # ally_color = "w" if self.white_to_move else "b"
+        any_found = False
         for d in directions:
             end_row = row + 2 * d[0]
             end_col = col + 2 * d[1]
@@ -129,11 +164,24 @@ class GameState:
                 next_col = col + d[1]
                 piece = self.board[next_row][next_col]
                 if piece[0] == enemy_color:
-                    moves_with_captures.append(Move((row, col), (end_row, end_col), self.board, piece,
-                                                    (next_row, next_col)))
+                    any_found = True
+                    tmp_move = Move((row, col), (end_row, end_col), self.board,
+                                    captured_piece=piece, captured_piece_pos=(next_row, next_col))
+                    found_capture_list.append(tmp_move)
+                    self.make_move(tmp_move)
+                    self.get_man_captures(end_row, end_col, moves_with_captures,
+                                          enemy_color=enemy_color, found_capture_list=found_capture_list)
+                    found_capture_list.pop()
+                    self.undo_move()
 
-    def find_captures_by_directions(self, row, col, enemy_color, directions):
-        pass
+        if not any_found and len(found_capture_list) > 0:
+            if len(moves_with_captures) == 0:
+                moves_with_captures.append(found_capture_list.copy())
+            elif len(moves_with_captures[0]) < len(found_capture_list):
+                moves_with_captures.clear()
+                moves_with_captures.append(found_capture_list.copy())
+            elif len(moves_with_captures[0]) == len(found_capture_list):
+                moves_with_captures.append(found_capture_list.copy())
 
     # Get all the king moves for the king located at row, col and add these moves to the list
     def get_king_moves(self, row, col, moves):
@@ -151,10 +199,83 @@ class GameState:
                 else:
                     break
 
-    def get_king_captures(self, row, col, moves_with_captures):
+    def get_king_captures(self, row, col, moves_with_captures, enemy_color=None, found_capture_list=[],
+                          captured_piece_pos=None):
         directions = ((-1, -1), (-1, 1), (1, -1), (1, 1))
-        enemy_color = "b" if self.white_to_move else "w"
-        pass
+        if enemy_color is None:
+            enemy_color = "b" if self.white_to_move else "w"
+        ally_color = "w" if self.white_to_move else "b"
+        any_found = False
+        for d in directions:
+            for i in range(1, 9):
+                capture_pos = ((row + d[0] * i), (col * d[1] + i))
+                if self.is_on_board(capture_pos[0], capture_pos[1]):
+                    piece = self.board[capture_pos[0]][capture_pos[1]]
+                    if piece == "--":
+                        continue
+                    elif piece[0] == ally_color:
+                        break
+                    elif piece[0] == enemy_color:
+                        for j in range(i + 1, 10):
+                            end_row = row + d[0] * j
+                            end_col = col + d[1] * j
+                            if self.is_on_board(end_row, end_col):
+                                if self.board[end_row][end_col] == "--":
+                                    any_found = True
+                                    tmp_move = Move((row, col), (end_row, end_col), self.board,
+                                                    captured_piece=piece, captured_piece_pos=captured_piece_pos)
+                                    found_capture_list.append(tmp_move)
+                                    self.make_move(tmp_move)
+                                    self.get_king_captures(end_row, end_col, moves_with_captures,
+                                                           enemy_color=enemy_color,
+                                                           found_capture_list=found_capture_list,
+                                                           captured_piece_pos=capture_pos)
+                                    found_capture_list.pop()
+                                    self.undo_move()
+
+
+                                else:
+                                    break
+                            else:
+                                break
+                    else:
+                        break
+
+                else:
+                    break
+
+            if not any_found and len(found_capture_list) > 0:
+                if len(moves_with_captures) == 0:
+                    moves_with_captures.append(found_capture_list.copy())
+                elif len(moves_with_captures[0]) < len(found_capture_list):
+                    moves_with_captures.clear()
+                    moves_with_captures.append(found_capture_list.copy())
+                elif len(moves_with_captures[0]) == len(found_capture_list):
+                    moves_with_captures.append(found_capture_list.copy())
+
+                end_row = row + d[0]
+                end_col = col + d[1]
+                if self.is_on_board(end_row, end_col) and self.board[end_row][end_col] == "--":
+                    next_row = row + d[0]
+                    next_col = col + d[1]
+                    piece = self.board[next_row][next_col]
+                    if piece[0] == enemy_color:
+                        any_found = True
+                        tmp_move = Move((row, col), (end_row, end_col), self.board,
+                                        captured_piece=piece, captured_piece_pos=(next_row, next_col))
+                        found_capture_list.append(tmp_move)
+                        self.make_move(tmp_move)
+                        self.get_king_captures(end_row, end_col, moves_with_captures,
+                                               enemy_color=enemy_color, found_capture_list=found_capture_list)
+                        found_capture_list.pop()
+                        self.undo_move()
+
+        if not any_found and len(found_capture_list) > 0:
+            if len(moves_with_captures) < len(found_capture_list):
+                moves_with_captures.clear()
+                moves_with_captures.append(found_capture_list.copy())
+            elif len(moves_with_captures) == len(found_capture_list):
+                moves_with_captures.append(found_capture_list.copy())
 
     @staticmethod
     def is_on_board(row, col):
