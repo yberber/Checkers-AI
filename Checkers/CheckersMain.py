@@ -42,6 +42,7 @@ def main():
     player_one = False  # if a human is playing white, then this will be True. If an AI is playing, then False
     player_two = False  # Same as above but for black
     game_over = False
+    paused = False  # can be used to pause the game while playing AI. User can press enter to pause the game
     while running:
         is_human_turn = (gs.white_to_move and player_one) or (not gs.white_to_move and player_two)
         for e in pygame.event.get():
@@ -80,6 +81,8 @@ def main():
                 if e.key == pygame.K_z:  # undo when 'z' is pressed
                     gs.undo_move()
                     valid_moves = gs.get_valid_moves()
+                if e.key == pygame.K_SPACE:
+                    paused = not paused
                 if e.key == pygame.K_r:  # reset the board when 'r' is pressed
                     gs = CheckersEngine.GameState()
                     player_clicks = []
@@ -90,7 +93,7 @@ def main():
                     move_made = False
 
         # AI Move Finder Logic
-        if not is_human_turn and not game_over:
+        if not is_human_turn and not game_over and not paused:
             ai_move = CheckersAI.find_random_move(valid_moves)
             gs.make_move(ai_move)
             move_made = True
