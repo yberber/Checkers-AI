@@ -5,7 +5,8 @@ user input and displaying the current GameState object.
 import math
 
 import pygame
-from Checkers import CheckersEngine
+from Checkers import CheckersEngine, CheckersAI
+
 
 WIDTH = HEIGHT = 640
 DIMENSION = 10  # dimensions of a checkers board are 10x10
@@ -38,12 +39,16 @@ def main():
     sq_selected = ()  # no square is selected, keep track of the last click of the used (tuple: (row, col))
     player_clicks = []  # keep track of player clicks (two tuples: [(6, 4), (5, 3)])
     possible_moves_for_selected = []
+    player_one = False  # if a human is playing white, then this will be True. If an AI is playing, then False
+    player_two = False # Same as above but for black
+    is_game_stopped = False
     while running:
+        is_human_turn = (gs.white_to_move and player_one) or (not gs.white_to_move and player_two)
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 running = False
             # mouse handler
-            elif e.type == pygame.MOUSEBUTTONDOWN:
+            elif e.type == pygame.MOUSEBUTTONDOWN and is_human_turn:
                 location = pygame.mouse.get_pos()  # (x, y) location of mouse
                 col = location[0] // SQ_SIZE
                 row = location[1] // SQ_SIZE
@@ -82,6 +87,12 @@ def main():
                     valid_moves = gs.get_valid_moves()
                     possible_moves_for_selected = []
                     move_made = False
+
+        # AI Move Finder Logic
+        if not is_human_turn:
+            ai_move = CheckersAI.find_random_move(valid_moves)
+            gs.make_move(ai_move)
+            move_made = True
 
         if move_made:
             animate_move(gs.move_log[-1], screen, gs.board, clock)

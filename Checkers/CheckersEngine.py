@@ -105,13 +105,8 @@ class GameState:
                         break
                 if equal:
                     self.single_valid_moves.append(self.valid_moves[i][max_move - self.left_capture_count])
-                # if self.move_log[-1] is self.valid_moves[i][max_move-self.left_capture_count-1]:
-                    # self.valid_moves[i].pop(0)
-                    # self.single_valid_moves.append(self.valid_moves[i][max_move-self.left_capture_count])
                 else:
                     pass
-                    # self.valid_moves.pop(i)
-            # last_move = self.move_log.pop()
 
         return self.single_valid_moves  # for now, we will not worry about some rules
 
