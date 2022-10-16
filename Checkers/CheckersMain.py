@@ -40,15 +40,15 @@ def main():
     player_clicks = []  # keep track of player clicks (two tuples: [(6, 4), (5, 3)])
     possible_moves_for_selected = []
     player_one = False  # if a human is playing white, then this will be True. If an AI is playing, then False
-    player_two = False # Same as above but for black
-    is_game_stopped = False
+    player_two = False  # Same as above but for black
+    game_over = False
     while running:
         is_human_turn = (gs.white_to_move and player_one) or (not gs.white_to_move and player_two)
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
                 running = False
             # mouse handler
-            elif e.type == pygame.MOUSEBUTTONDOWN and is_human_turn:
+            elif e.type == pygame.MOUSEBUTTONDOWN and is_human_turn and not game_over:
                 location = pygame.mouse.get_pos()  # (x, y) location of mouse
                 col = location[0] // SQ_SIZE
                 row = location[1] // SQ_SIZE
@@ -86,10 +86,11 @@ def main():
                     sq_selected = ()
                     valid_moves = gs.get_valid_moves()
                     possible_moves_for_selected = []
+                    game_over = False
                     move_made = False
 
         # AI Move Finder Logic
-        if not is_human_turn:
+        if not is_human_turn and not game_over:
             ai_move = CheckersAI.find_random_move(valid_moves)
             gs.make_move(ai_move)
             move_made = True
@@ -98,8 +99,17 @@ def main():
             animate_move(gs.move_log[-1], screen, gs.board, clock)
             valid_moves = gs.get_valid_moves()
             move_made = False
+            if len(valid_moves) == 0:
+                game_over = True
+                draw_game_state(screen, gs, possible_moves_for_selected, sq_selected)
+                if gs.white_to_move:
+                    draw_text(screen, "Black Wins")
+                else:
+                    draw_text(screen, "White Wins")
 
-        draw_game_state(screen, gs, possible_moves_for_selected, sq_selected)
+        if not game_over:
+            draw_game_state(screen, gs, possible_moves_for_selected, sq_selected)
+
         clock.tick(MAX_FPS)
         pygame.display.flip()
 
@@ -109,6 +119,17 @@ def draw_game_state(screen, gs, possible_moves, sq_selected):
     draw_board(screen)  # draw squares on the board
     highlight_squares(screen, gs, possible_moves, sq_selected)
     draw_pieces(screen, gs.board)  # draw pieces on top of those squares
+
+
+def draw_text(screen, text):
+    font = pygame.font.SysFont("Arial", 32, True, False)
+    text_obj = font.render(text, True, pygame.Color("Gray"))
+    text_location = pygame.Rect((WIDTH - text_obj.get_width())//2, (HEIGHT - text_obj.get_height())//2,
+                                text_obj.get_width(), text_obj.get_height())
+    screen.blit(text_obj, text_location)
+    text_obj = font.render(text, True, pygame.Color("Black"))
+    screen.blit(text_obj, text_location.move(2, 2))
+    pygame.display.update()
 
 
 # Highlight square selected and moves for piece selected
@@ -148,13 +169,13 @@ def draw_pieces(screen, board):
 # animating a move
 def animate_move(move, screen, board, clock):
     global colors
-    dR = move.end_row - move.start_row
-    dC = move.end_col - move.start_col
+    d_r = move.end_row - move.start_row
+    d_c = move.end_col - move.start_col
     frames_per_square = 8  # frames to move one square
-    frame_count = int(math.sqrt(dR*dR + dC*dC) * frames_per_square)
+    frame_count = int(math.sqrt(d_r*d_r + d_c*d_c) * frames_per_square)
     for frame in range(frame_count + 1):
         d_frame = frame/frame_count
-        row, col = (move.start_row + dR * d_frame, move.start_col + dC * d_frame)
+        row, col = (move.start_row + d_r * d_frame, move.start_col + d_c * d_frame)
         draw_board(screen)
         draw_pieces(screen, board)
         # erase the piece moved from its ending square
