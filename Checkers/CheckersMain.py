@@ -39,8 +39,8 @@ def main():
     sq_selected = ()  # no square is selected, keep track of the last click of the used (tuple: (row, col))
     player_clicks = []  # keep track of player clicks (two tuples: [(6, 4), (5, 3)])
     possible_moves_for_selected = []
-    player_one = False  # if a human is playing white, then this will be True. If an AI is playing, then False
-    player_two = False  # Same as above but for black
+    player_one = True  # if a human is playing white, then this will be True. If an AI is playing, then False
+    player_two = True  # Same as above but for black
     game_over = False
     paused = False  # can be used to pause the game while playing AI. User can press enter to pause the game
     while running:
@@ -142,11 +142,16 @@ def highlight_squares(screen, gs, possible_moves, sq_selected):
         if gs.board[row][col][0] == ("w" if gs.white_to_move else "b"):  # sq_selected is a piece that can be moved
             surface = pygame.Surface((SQ_SIZE, SQ_SIZE))
             surface.set_alpha(100)  # transparency value -> 0 0 transparent; 255 opaque
-            surface.fill(pygame.Color("blue"))
+            # surface.fill(pygame.Color("blue"))
+            surface.fill(pygame.Color("darkgreen"))
             screen.blit(surface, (col * SQ_SIZE, row * SQ_SIZE))
             # highlight moves from that square
-            surface.fill(pygame.Color("yellow"))
+            # surface.fill(pygame.Color("yellow"))
+            surface = pygame.Surface((SQ_SIZE, SQ_SIZE))
+            surface.set_alpha(100)  # transparency value -> 0 0 transparent; 255 opaque
             for move in possible_moves:
+                pygame.draw.circle(surface, pygame.Color("darkgreen"), (SQ_SIZE//2,
+                                                                       SQ_SIZE//2), SQ_SIZE/8)
                 screen.blit(surface, (move.end_col * SQ_SIZE, move.end_row * SQ_SIZE))
 
 
