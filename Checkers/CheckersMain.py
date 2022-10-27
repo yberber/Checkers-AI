@@ -101,6 +101,12 @@ def main():
         if move_made:
             animate_move(gs.move_log[-1], screen, gs.board, clock)
             valid_moves = gs.get_valid_moves()
+
+            if gs.capture_index >= 2:
+                sq_selected = (gs.move_log[-1].end_row, gs.move_log[-1].end_col)
+                player_clicks = [sq_selected]
+                possible_moves_for_selected = gs.get_valid_moves_for_selected_piece(sq_selected)
+
             move_made = False
             if len(valid_moves) == 0:
                 game_over = True
