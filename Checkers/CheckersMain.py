@@ -63,7 +63,7 @@ def main():
                 if len(player_clicks) == 1:
                     possible_moves_for_selected = gs.get_valid_moves_for_selected_piece(sq_selected)
                 if len(player_clicks) == 2:  # after 2nd click
-                    move = CheckersEngine.Move(player_clicks[0], player_clicks[1], gs.board)
+                    move = CheckersEngine.Move(player_clicks[0], player_clicks[1], gs.board, gs.white_to_move)
                     possible_moves_for_selected = []
 
                     for i in range(len(valid_moves)):
