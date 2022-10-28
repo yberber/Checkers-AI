@@ -20,8 +20,15 @@ IMAGES = {}
 def load_images():
     pieces = ["wm", "wk", "bm", "bk"]
     for piece in pieces:
-        image = pygame.image.load("images/" + piece + ".png")
-        IMAGES[piece] = pygame.transform.scale(image, (SQ_SIZE, SQ_SIZE))
+        image = pygame.image.load("images/" + piece + "_.png")
+        rect = image.get_rect()
+        rect = rect.fit([0, 0, SQ_SIZE, SQ_SIZE])
+        surface = pygame.Surface((SQ_SIZE, SQ_SIZE))
+        surface.set_alpha(255)
+        surface.blit(pygame.transform.scale(image, rect.size), rect)
+        IMAGES[piece] = surface
+        # IMAGES[piece] = pygame.transform.scale(image, (SQ_SIZE, (image.get_height() / image.get_width()) * SQ_SIZE))
+
     #  Note: we can access an image by saying 'IMAGES['wp']'
 
 
@@ -39,8 +46,8 @@ def main():
     sq_selected = ()  # no square is selected, keep track of the last click of the used (tuple: (row, col))
     player_clicks = []  # keep track of player clicks (two tuples: [(6, 4), (5, 3)])
     possible_moves_for_selected = []
-    player_one = True  # if a human is playing white, then this will be True. If an AI is playing, then False
-    player_two = True  # Same as above but for black
+    player_one = False  # if a human is playing white, then this will be True. If an AI is playing, then False
+    player_two = False  # Same as above but for black
     game_over = False
     paused = False  # can be used to pause the game while playing AI. User can press enter to pause the game
     while running:
