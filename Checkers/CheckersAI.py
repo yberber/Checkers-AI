@@ -1,6 +1,8 @@
 import random
 
 piece_score = {"k": 3, "m": 1, "-": 0}
+DEPTH = 0
+move_count = 0
 
 
 def find_random_move(valid_moves):
@@ -33,9 +35,55 @@ def find_best_move_brute_force(gs):
     return best_player_move
 
 
+# Helper method to make first recursive call
+def find_best_move_min_max(gs, depth=5):
+    global next_move, DEPTH, move_count
+    move_count = 0
+    next_move = None
+    DEPTH = depth
+    find_move_min_max(gs, depth)
+    print(f"possible move count: {move_count}")
+    return next_move
+
+def find_move_min_max(gs, depth):
+    global next_move
+    global move_count
+    if depth == 0:
+        return score_material(gs.board)
+
+    if gs.white_to_move:
+        max_score = -100
+        possible_moves_extended = gs.get_all_possible_moves()
+        if depth == DEPTH:
+            random.shuffle(possible_moves_extended)
+        if depth == 1:
+            move_count += len(possible_moves_extended)
+        for move in possible_moves_extended:
+            gs.make_move_extended(move)
+            score = find_move_min_max(gs, depth-1)
+            if score > max_score:
+                max_score = score
+                if depth == DEPTH:
+                    next_move = move
+            gs.undo_move()
+        return max_score
+    else:
+        min_score = 100
+        possible_moves_extended = gs.get_all_possible_moves()
+        if depth == 1:
+            move_count += len(possible_moves_extended)
+        for move in possible_moves_extended:
+            gs.make_move_extended(move)
+            score = find_move_min_max(gs, depth - 1)
+            if score < min_score:
+                min_score = score
+                if depth == DEPTH:
+                    next_move = move
+            gs.undo_move()
+        return min_score
 
 
-
+# a positive score is good for white, a negative score is good for black
 # Score the board base on material
 def score_material(board):
     score = 0
