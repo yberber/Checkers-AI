@@ -49,7 +49,7 @@ def main():
     player_one = False  # if a human is playing white, then this will be True. If an AI is playing, then False
     player_two = False  # Same as above but for black
     game_over = False
-    paused = False  # can be used to pause the game while playing AI. User can press enter to pause the game
+    paused = True  # can be used to pause the game while playing AI. User can press enter to pause the game
     while running:
         is_human_turn = (gs.white_to_move and player_one) or (not gs.white_to_move and player_two)
         for e in pygame.event.get():
@@ -101,8 +101,21 @@ def main():
 
         # AI Move Finder Logic
         if not is_human_turn and not game_over and not paused:
-            ai_move = CheckersAI.find_random_move(valid_moves)
-            gs.make_move(ai_move)
+            ai_move = CheckersAI.find_best_move(gs)
+            if ai_move is None:
+                ai_move = CheckersAI.find_random_move(valid_moves)
+
+            # gs.make_move_extended(ai_move)
+            if type(ai_move) is list:
+                for index in range(0, len(ai_move)-1):
+                    gs.make_move(ai_move[index], seaching_mode=True)
+                    animate_move(gs.move_log[-1], screen, gs.board, clock)
+                    draw_game_state(screen, gs, possible_moves_for_selected, sq_selected)
+                    pygame.display.flip()
+                gs.make_move(ai_move[-1])
+            else:
+                gs.make_move(ai_move)
+
             move_made = True
 
         if move_made:

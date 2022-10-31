@@ -72,6 +72,14 @@ class GameState:
                         if self.move_log[-1] != self.valid_moves[index][self.capture_index-1]:
                             self.valid_moves.pop(index)
 
+    def make_move_extended(self, single_move_or_move_list):
+        if type(single_move_or_move_list) is not list:
+            self.make_move(single_move_or_move_list, seaching_mode=True)
+        else:
+            for move in single_move_or_move_list:
+                self.make_move(move, seaching_mode=True)
+        self.change_turn()
+
     # Undo the last move made
     def undo_move(self, only_one=False):
         if len(self.move_log):  # make sure that there is a move to undo
@@ -108,6 +116,7 @@ class GameState:
             self.single_valid_moves = self.valid_moves
 
         return self.single_valid_moves  # for now, we will not worry about some rules
+
 
     def get_valid_moves_for_selected_piece(self, sq_selected):
         valid_moves_for_selected_piece = []
