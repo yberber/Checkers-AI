@@ -89,6 +89,8 @@ class GameState:
                 if not len(self.move_log) or move.is_white != self.move_log[-1].is_white:
                     break
 
+            if (self.capture_index > 1):
+                self.white_to_move = not self.white_to_move
             self.change_turn()
 
     # All moves considering rules (for e., the move that captures the greatest number of pieces must be made.)
