@@ -8,12 +8,13 @@ def find_random_move(valid_moves):
 
 
 # Find the best move based on material alone.
-def find_best_move(gs):
+# it looks two moves ahead by using brute force
+def find_best_move_brute_force(gs):
     turn_multiplier = 1 if gs.white_to_move else -1
     opponent_min_max_score = 100
     best_player_move = None
     possible_moves_extended = gs.get_all_possible_moves()
-    # random.shuffle(possible_moves_extended)
+    # random.shuffle(possible_moves_extended) # to select random move among moves with same scores
     for player_move in possible_moves_extended:
         gs.make_move_extended(player_move)
         oppenent_moves = gs.get_all_possible_moves()
@@ -30,6 +31,9 @@ def find_best_move(gs):
         gs.undo_move()
 
     return best_player_move
+
+
+
 
 
 # Score the board base on material

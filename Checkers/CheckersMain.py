@@ -88,6 +88,7 @@ def main():
                 if e.key == pygame.K_z:  # undo when 'z' is pressed
                     gs.undo_move()
                     valid_moves = gs.get_valid_moves()
+                    game_over = False
                 if e.key == pygame.K_SPACE:
                     paused = not paused
                 if e.key == pygame.K_r:  # reset the board when 'r' is pressed
@@ -101,7 +102,8 @@ def main():
 
         # AI Move Finder Logic
         if not is_human_turn and not game_over and not paused:
-            ai_move = CheckersAI.find_best_move(gs)
+            # ai_move = CheckersAI.find_random_move(valid_moves)
+            ai_move = CheckersAI.find_best_move_brute_force(gs)
             if ai_move is None:
                 ai_move = CheckersAI.find_random_move(valid_moves)
 
