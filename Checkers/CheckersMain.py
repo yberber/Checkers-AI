@@ -104,7 +104,8 @@ def main():
         if not is_human_turn and not game_over and not paused:
             # ai_move = CheckersAI.find_random_move(valid_moves)
             # ai_move = CheckersAI.find_best_move_brute_force(gs)
-            ai_move = CheckersAI.find_best_move_min_max(gs)
+            # ai_move = CheckersAI.find_best_move_min_max(gs)
+            ai_move = CheckersAI.find_best_move_nega_max(gs)
 
             if ai_move is None:
                 ai_move = CheckersAI.find_random_move(valid_moves)

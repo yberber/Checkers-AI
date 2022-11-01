@@ -42,6 +42,7 @@ def find_best_move_min_max(gs, depth=5):
     next_move = None
     DEPTH = depth
     find_move_min_max(gs, depth)
+    # find_move_nega_max(gs, depth, 1 if gs.white_to_move else -1)
     print(f"possible move count: {move_count}")
     return next_move
 
@@ -54,8 +55,8 @@ def find_move_min_max(gs, depth):
     if gs.white_to_move:
         max_score = -100
         possible_moves_extended = gs.get_all_possible_moves()
-        if depth == DEPTH:
-            random.shuffle(possible_moves_extended)
+        # if depth == DEPTH:
+        #     random.shuffle(possible_moves_extended)
         if depth == 1:
             move_count += len(possible_moves_extended)
         for move in possible_moves_extended:
@@ -81,6 +82,36 @@ def find_move_min_max(gs, depth):
                     next_move = move
             gs.undo_move()
         return min_score
+
+
+def find_best_move_nega_max(gs, depth=5):
+    global next_move, DEPTH, move_count
+    move_count = 0
+    next_move = None
+    DEPTH = depth
+    # find_move_min_max(gs, depth)
+    find_move_nega_max(gs, depth, 1 if gs.white_to_move else -1)
+    print(f"possible move count: {move_count}")
+    return next_move
+
+def find_move_nega_max(gs, depth, turn_multiplier):
+    global next_move, move_count
+    if depth == 0:
+        return turn_multiplier * score_material(gs.board)
+
+    max_score = -100
+    possible_moves_extended = gs.get_all_possible_moves()
+    if depth == 1:
+        move_count += len(possible_moves_extended)
+    for move in possible_moves_extended:
+        gs.make_move_extended(move)
+        score = -find_move_nega_max(gs, depth-1, -turn_multiplier)
+        if score > max_score:
+            max_score = score
+            if depth == DEPTH:
+                next_move = move
+        gs.undo_move()
+    return max_score
 
 
 # a positive score is good for white, a negative score is good for black
