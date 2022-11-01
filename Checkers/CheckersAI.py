@@ -2,7 +2,7 @@ import random
 
 piece_score = {"k": 3, "m": 1, "-": 0}
 DEPTH = 0
-move_count = 0
+counter = 0
 
 
 def find_random_move(valid_moves):
@@ -37,19 +37,22 @@ def find_best_move_brute_force(gs):
 
 # Helper method to make first recursive call
 def find_best_move_min_max(gs, depth=8):
-    global next_move, DEPTH, move_count
-    move_count = 0
+    global next_move, DEPTH, counter
+    counter = 0
     next_move = None
     DEPTH = depth
     # find_move_min_max(gs, depth)
     find_move_min_max_alpha_beta(gs, depth, -100, 100)
     # find_move_nega_max(gs, depth, 1 if gs.white_to_move else -1)
-    print(f"possible move count: {move_count}")
+    print(f"possible move count: {counter}")
     return next_move
 
 def find_move_min_max(gs, depth):
     global next_move
-    global move_count
+    global counter
+
+    counter += 1
+
     if depth == 0:
         return score_material(gs.board)
 
@@ -58,8 +61,6 @@ def find_move_min_max(gs, depth):
         possible_moves_extended = gs.get_all_possible_moves()
         # if depth == DEPTH:
         #     random.shuffle(possible_moves_extended)
-        if depth == 1:
-            move_count += len(possible_moves_extended)
         for move in possible_moves_extended:
             gs.make_move_extended(move)
             score = find_move_min_max(gs, depth-1)
@@ -72,8 +73,7 @@ def find_move_min_max(gs, depth):
     else:
         min_score = 100
         possible_moves_extended = gs.get_all_possible_moves()
-        if depth == 1:
-            move_count += len(possible_moves_extended)
+
         for move in possible_moves_extended:
             gs.make_move_extended(move)
             score = find_move_min_max(gs, depth - 1)
@@ -86,7 +86,10 @@ def find_move_min_max(gs, depth):
 
 def find_move_min_max_alpha_beta(gs, depth, alpha, beta):
     global next_move
-    global move_count
+    global counter
+
+    counter += 1
+
     if depth == 0:
         return score_material(gs.board)
 
@@ -95,8 +98,6 @@ def find_move_min_max_alpha_beta(gs, depth, alpha, beta):
         possible_moves_extended = gs.get_all_possible_moves()
         # if depth == DEPTH:
         #     random.shuffle(possible_moves_extended)
-        if depth == 1:
-            move_count += len(possible_moves_extended)
         for move in possible_moves_extended:
             gs.make_move_extended(move)
             score = find_move_min_max_alpha_beta(gs, depth-1, alpha, beta)
@@ -116,8 +117,6 @@ def find_move_min_max_alpha_beta(gs, depth, alpha, beta):
         possible_moves_extended = gs.get_all_possible_moves()
         # if depth == DEPTH:
         #     random.shuffle(possible_moves_extended)
-        if depth == 1:
-            move_count += len(possible_moves_extended)
         for move in possible_moves_extended:
             gs.make_move_extended(move)
             score = find_move_min_max_alpha_beta(gs, depth - 1, alpha, beta)
@@ -134,26 +133,25 @@ def find_move_min_max_alpha_beta(gs, depth, alpha, beta):
         return min_score
 
 def find_best_move_nega_max(gs, depth=8):
-    global next_move, DEPTH, move_count
-    move_count = 0
+    global next_move, DEPTH, counter
+    counter = 0
     next_move = None
     DEPTH = depth
     # find_move_min_max(gs, depth)
     # find_move_nega_max(gs, depth, 1 if gs.white_to_move else -1)
     find_move_nega_max_alpha_beta(gs, depth, -100, 100, 1 if gs.white_to_move else -1)
 
-    print(f"possible move count: {move_count}")
+    print(f"possible move count: {counter}")
     return next_move
 
 def find_move_nega_max(gs, depth, turn_multiplier):
-    global next_move, move_count
+    global next_move, counter
+    counter += 1
     if depth == 0:
         return turn_multiplier * score_material(gs.board)
 
     max_score = -100
     possible_moves_extended = gs.get_all_possible_moves()
-    if depth == 1:
-        move_count += len(possible_moves_extended)
     for move in possible_moves_extended:
         gs.make_move_extended(move)
         score = -find_move_nega_max(gs, depth-1, -turn_multiplier)
@@ -166,15 +164,14 @@ def find_move_nega_max(gs, depth, turn_multiplier):
 
 
 def find_move_nega_max_alpha_beta(gs, depth, alpha, beta, turn_multiplier):
-    global next_move, move_count
+    global next_move, counter
+    counter += 1
     if depth == 0:
         return turn_multiplier * score_material(gs.board)
 
     # move ordering - implement later
     max_score = -100
     possible_moves_extended = gs.get_all_possible_moves()
-    if depth == 1:
-        move_count += len(possible_moves_extended)
     for move in possible_moves_extended:
         gs.make_move_extended(move)
         score = -find_move_nega_max_alpha_beta(gs, depth-1, -beta, -alpha, -turn_multiplier)
