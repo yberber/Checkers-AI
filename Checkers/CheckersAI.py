@@ -36,12 +36,13 @@ def find_best_move_brute_force(gs):
 
 
 # Helper method to make first recursive call
-def find_best_move_min_max(gs, depth=5):
+def find_best_move_min_max(gs, depth=8):
     global next_move, DEPTH, move_count
     move_count = 0
     next_move = None
     DEPTH = depth
-    find_move_min_max(gs, depth)
+    # find_move_min_max(gs, depth)
+    find_move_min_max_alpha_beta(gs, depth, -100, 100)
     # find_move_nega_max(gs, depth, 1 if gs.white_to_move else -1)
     print(f"possible move count: {move_count}")
     return next_move
@@ -83,14 +84,64 @@ def find_move_min_max(gs, depth):
             gs.undo_move()
         return min_score
 
+def find_move_min_max_alpha_beta(gs, depth, alpha, beta):
+    global next_move
+    global move_count
+    if depth == 0:
+        return score_material(gs.board)
 
-def find_best_move_nega_max(gs, depth=5):
+    if gs.white_to_move:
+        max_score = -100
+        possible_moves_extended = gs.get_all_possible_moves()
+        # if depth == DEPTH:
+        #     random.shuffle(possible_moves_extended)
+        if depth == 1:
+            move_count += len(possible_moves_extended)
+        for move in possible_moves_extended:
+            gs.make_move_extended(move)
+            score = find_move_min_max_alpha_beta(gs, depth-1, alpha, beta)
+
+            if score > max_score:
+                max_score = score
+                if max_score >= beta:
+                    gs.undo_move()
+                    break
+                if depth == DEPTH:
+                    next_move = move
+            alpha = max(alpha, max_score)
+            gs.undo_move()
+        return max_score
+    else:
+        min_score = 100
+        possible_moves_extended = gs.get_all_possible_moves()
+        # if depth == DEPTH:
+        #     random.shuffle(possible_moves_extended)
+        if depth == 1:
+            move_count += len(possible_moves_extended)
+        for move in possible_moves_extended:
+            gs.make_move_extended(move)
+            score = find_move_min_max_alpha_beta(gs, depth - 1, alpha, beta)
+            if score < min_score:
+                min_score = score
+                if min_score <= alpha:
+                    gs.undo_move()
+
+                    break
+                if depth == DEPTH:
+                    next_move = move
+            beta = min(beta, min_score)
+            gs.undo_move()
+        return min_score
+
+def find_best_move_nega_max(gs, depth=8):
     global next_move, DEPTH, move_count
     move_count = 0
     next_move = None
     DEPTH = depth
     # find_move_min_max(gs, depth)
-    find_move_nega_max(gs, depth, 1 if gs.white_to_move else -1)
+    # find_move_nega_max(gs, depth, 1 if gs.white_to_move else -1)
+    find_move_nega_max_alpha_beta(gs, depth, -100, 100, 1 if gs.white_to_move else -1)
+
     print(f"possible move count: {move_count}")
     return next_move
 
@@ -111,6 +162,31 @@ def find_move_nega_max(gs, depth, turn_multiplier):
             if depth == DEPTH:
                 next_move = move
         gs.undo_move()
+    return max_score
+
+
+def find_move_nega_max_alpha_beta(gs, depth, alpha, beta, turn_multiplier):
+    global next_move, move_count
+    if depth == 0:
+        return turn_multiplier * score_material(gs.board)
+
+    # move ordering - implement later
+    max_score = -100
+    possible_moves_extended = gs.get_all_possible_moves()
+    if depth == 1:
+        move_count += len(possible_moves_extended)
+    for move in possible_moves_extended:
+        gs.make_move_extended(move)
+        score = -find_move_nega_max_alpha_beta(gs, depth-1, -beta, -alpha, -turn_multiplier)
+        if score > max_score:
+            max_score = score
+            if depth == DEPTH:
+                next_move = move
+        gs.undo_move()
+        if max_score > alpha:  # pruning happens
+            alpha = max_score
+        if alpha >= beta:
+            break
     return max_score
 
 
