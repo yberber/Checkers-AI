@@ -102,25 +102,35 @@ def main():
 
         # AI Move Finder Logic
         if not is_human_turn and not game_over and not paused:
+            # ai_move = CheckersAI.find_best_move_min_max(gs, 8)
+
             # ai_move = CheckersAI.find_random_move(valid_moves)
             # ai_move = CheckersAI.find_best_move_brute_force(gs)
             # if gs.white_to_move:
             #     ai_move = CheckersAI.find_best_move_min_max(gs, 5)
             # else:
             #     ai_move = CheckersAI.find_best_move_nega_max(gs, 4)
+            if gs.white_to_move:
+                ai_move = CheckersAI.find_best_move_min_max(gs, 8)
+            else:
+                ai_move = CheckersAI.find_random_move(valid_moves)
 
-            ai_move = CheckersAI.find_best_move_nega_max(gs, 12)
+            # ai_move = CheckersAI.find_best_move_nega_max(gs)
             if ai_move is None:
                 ai_move = CheckersAI.find_random_move(valid_moves)
 
             # gs.make_move_extended(ai_move)
             if type(ai_move) is list:
+                is_more_than_one_piece_captured = False
                 for index in range(0, len(ai_move)-1):
                     gs.make_move(ai_move[index], seaching_mode=True)
                     animate_move(gs.move_log[-1], screen, gs.board, clock)
                     draw_game_state(screen, gs, possible_moves_for_selected, sq_selected)
                     pygame.display.flip()
+                    is_more_than_one_piece_captured = True
                 gs.make_move(ai_move[-1])
+                if is_more_than_one_piece_captured:
+                    gs.change_turn()
             else:
                 gs.make_move(ai_move)
 

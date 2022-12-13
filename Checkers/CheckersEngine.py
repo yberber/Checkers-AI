@@ -45,10 +45,10 @@ class GameState:
         ]
 
         # self.board = [
-        #     ["--", "--", "--", "--", "--", "bm", "--", "--", "--", "--"],
-        #     ["--", "--", "wm", "--", "--", "--", "bm", "--", "--", "--"],
-        #     ["--", "--", "--", "--", "--", "bm", "--", "--", "--", "--"],
-        #     ["--", "--", "--", "--", "bm", "--", "--", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "bm", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "bm", "--"],
         #
         #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "wm"],
         #     ["bm", "--", "wm", "--", "--", "--", "--", "--", "--", "--"],
@@ -57,6 +57,36 @@ class GameState:
         #     ["wm", "--", "--", "--", "wm", "--", "--", "--", "--", "--"],
         #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "wm"],
         #     ["--", "--", "--", "--", "--", "--", "bk", "--", "--", "--"]
+        # ]
+        #
+        # self.board = [
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #
+        #     ["--", "--", "--", "--", "--", "--", "--", "bm", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "wm", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "wm", "--", "wm"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"]
+        # ]
+
+        # self.board = [
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "bm", "--", "--", "--"],
+        #
+        #     ["--", "bm", "--", "--", "--", "wk", "--", "--", "--", "--"],
+        #     ["bm", "--", "bm", "--", "--", "--", "--", "--", "--", "--"],
+        #     ["--", "--", "--", "--", "--", "--", "--", "--", "--", "--"],
+        #     ["wm", "--", "wm", "--", "wm", "--", "--", "--", "--", "--"]
         # ]
         self.move_functions = {'m': self.get_man_moves, 'k': self.get_king_moves}
         self.capture_functions = {'m': self.get_man_captures, 'k': self.get_king_captures}
@@ -155,6 +185,61 @@ class GameState:
             return moves_with_captures
 
         return moves
+
+    def get_all_possible_captures(self):
+        # moves = []
+        moves_with_captures = []
+        for row in range(len(self.board)):  # number of rows
+            for col in range(len(self.board[row])):  # number of cols in given row
+                turn = self.board[row][col][0]
+                if turn == "w" and self.white_to_move or turn == "b" and not self.white_to_move:
+                    piece = self.board[row][col][1]
+                    self.capture_functions[piece](row, col, moves_with_captures)
+                    # self.move_functions[piece](row, col, moves)
+
+        # if len(moves_with_captures) != 0:
+        #     return moves_with_captures
+
+        return moves_with_captures
+
+    def is_game_over(self):
+        any_move = []
+        for row in range(len(self.board)):  # number of rows
+            for col in range(len(self.board[row])):  # number of cols in given row
+                turn = self.board[row][col][0]
+                if turn == "w" and self.white_to_move or turn == "b" and not self.white_to_move:
+                    piece = self.board[row][col][1]
+                    self.capture_functions[piece](row, col, any_move)
+                    self.move_functions[piece](row, col, any_move)
+
+                    if len(any_move) != 0:
+                        return False
+        return True
+
+    def can_capture(self):
+        any_capture = []
+        for row in range(len(self.board)):  # number of rows
+            for col in range(len(self.board[row])):  # number of cols in given row
+                turn = self.board[row][col][0]
+                if turn == "w" and self.white_to_move or turn == "b" and not self.white_to_move:
+                    piece = self.board[row][col][1]
+                    self.capture_functions[piece](row, col, any_capture)
+                    if len(any_capture) != 0:
+                        return True
+        return False
+
+    def can_move(self):
+        any_move = []
+        for row in range(len(self.board)):  # number of rows
+            for col in range(len(self.board[row])):  # number of cols in given row
+                turn = self.board[row][col][0]
+                if turn == "w" and self.white_to_move or turn == "b" and not self.white_to_move:
+                    piece = self.board[row][col][1]
+                    self.move_functions[piece](row, col, any_move)
+                    if len(any_move) != 0:
+                        return False
+        return True
+
 
     # Get all the man moves for the man located at row, col and add these moves to the list
     def get_man_moves(self, row, col, moves):
