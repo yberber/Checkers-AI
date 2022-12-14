@@ -47,7 +47,7 @@ def main():
     player_clicks = []  # keep track of player clicks (two tuples: [(6, 4), (5, 3)])
     possible_moves_for_selected = []
     player_one = False  # if a human is playing white, then this will be True. If an AI is playing, then False
-    player_two = False  # Same as above but for black
+    player_two = True  # Same as above but for black
     game_over = False
     paused = True  # can be used to pause the game while playing AI. User can press enter to pause the game
     while running:
@@ -102,7 +102,7 @@ def main():
 
         # AI Move Finder Logic
         if not is_human_turn and not game_over and not paused:
-            # ai_move = CheckersAI.find_best_move_min_max(gs, 8)
+            ai_move = CheckersAI.find_best_move_min_max(gs, 8)
 
             # ai_move = CheckersAI.find_random_move(valid_moves)
             # ai_move = CheckersAI.find_best_move_brute_force(gs)
@@ -110,10 +110,10 @@ def main():
             #     ai_move = CheckersAI.find_best_move_min_max(gs, 5)
             # else:
             #     ai_move = CheckersAI.find_best_move_nega_max(gs, 4)
-            if gs.white_to_move:
-                ai_move = CheckersAI.find_best_move_min_max(gs, 8)
-            else:
-                ai_move = CheckersAI.find_random_move(valid_moves)
+            # if gs.white_to_move:
+            #     ai_move = CheckersAI.find_best_move_min_max(gs, 8)
+            # else:
+            #     ai_move = CheckersAI.find_random_move(valid_moves)
 
             # ai_move = CheckersAI.find_best_move_nega_max(gs)
             if ai_move is None:

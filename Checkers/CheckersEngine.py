@@ -19,6 +19,29 @@ def nested_set(dic, keys, value):
         dic = dic[key]  # this one throws error if key dies not exists in the  dictionary
     dic[keys[-1]] = value
 
+def get_piece_id(piece_name):
+    match piece_name:
+        case "wm":
+            return 1
+        case "bm":
+            return 2
+        case "wk":
+            return 3
+        case "bk":
+            return 4
+        case _:
+            return 0
+
+
+def get_extended_move_id_list(single_move_or_move_list):
+    move_id_list = []
+    if type(single_move_or_move_list) is not list:
+        move_id_list.append(single_move_or_move_list.move_id)
+    else:
+        for move in single_move_or_move_list:
+            move_id_list.append(move.move_id)
+    return move_id_list
+
 
 class GameState:
     def __init__(self):
@@ -123,6 +146,9 @@ class GameState:
             for move in single_move_or_move_list:
                 self.make_move(move, seaching_mode=True)
         self.change_turn()
+
+
+
 
     # Undo the last move made
     def undo_move(self, only_one=False):
@@ -411,6 +437,9 @@ class Move:
         self.piece_moved = board[self.start_row][self.start_col]
         self.captured_piece = captured_piece
         self.captured_piece_pos = captured_piece_pos
+
+        self.move_id = get_piece_id(captured_piece) * 10000 + self.start_row * 1000 + self.start_col * 100 + self.end_row * 10 + self.end_col
+
         self.move_id = self.start_row * 1000 + self.start_col * 100 + self.end_row * 10 + self.end_col
 
         self.is_man_promotion = self.piece_moved == "wm" and self.end_row == 0 or \
