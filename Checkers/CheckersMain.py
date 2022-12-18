@@ -46,7 +46,7 @@ def main():
     sq_selected = ()  # no square is selected, keep track of the last click of the used (tuple: (row, col))
     player_clicks = []  # keep track of player clicks (two tuples: [(6, 4), (5, 3)])
     possible_moves_for_selected = []
-    player_one = False  # if a human is playing white, then this will be True. If an AI is playing, then False
+    player_one = True  # if a human is playing white, then this will be True. If an AI is playing, then False
     player_two = True  # Same as above but for black
     game_over = False
     paused = True  # can be used to pause the game while playing AI. User can press enter to pause the game
@@ -150,9 +150,9 @@ def main():
                 game_over = True
                 draw_game_state(screen, gs, possible_moves_for_selected, sq_selected)
                 if gs.white_to_move:
-                    draw_text(screen, "Black Wins")
+                    draw_end_game_text(screen, "Black Wins")
                 else:
-                    draw_text(screen, "White Wins")
+                    draw_end_game_text(screen, "White Wins")
 
         if not game_over:
             draw_game_state(screen, gs, possible_moves_for_selected, sq_selected)
@@ -168,7 +168,7 @@ def draw_game_state(screen, gs, possible_moves, sq_selected):
     draw_pieces(screen, gs.board)  # draw pieces on top of those squares
 
 
-def draw_text(screen, text):
+def draw_end_game_text(screen, text):
     font = pygame.font.SysFont("Arial", 32, True, False)
     text_obj = font.render(text, True, pygame.Color("Gray"))
     text_location = pygame.Rect((WIDTH - text_obj.get_width())//2, (HEIGHT - text_obj.get_height())//2,
