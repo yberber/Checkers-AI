@@ -8,9 +8,11 @@ import pygame
 from Checkers import CheckersEngine, CheckersAI
 
 
-WIDTH = HEIGHT = 640
+BOARD_WIDTH = BOARD_HEIGHT = 640
+MOVE_LOG_PANEL_WIDTH = 260
+MOVE_LOG_PANEL_HEIGHT = BOARD_HEIGHT
 DIMENSION = 10  # dimensions of a checkers board are 10x10
-SQ_SIZE = HEIGHT // DIMENSION
+SQ_SIZE = BOARD_HEIGHT // DIMENSION
 MAX_FPS = 15
 IMAGES = {}
 
@@ -35,9 +37,10 @@ def load_images():
 # The main driver for our code. This will handle user input and update the graphics
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen = pygame.display.set_mode((BOARD_WIDTH + MOVE_LOG_PANEL_WIDTH, BOARD_HEIGHT))
     clock = pygame.time.Clock()
     screen.fill((255, 255, 255))
+    move_log_font = pygame.font.SysFont("Arial", 12, False, False)
     gs = CheckersEngine.GameState()
     valid_moves = gs.get_valid_moves()
     move_made = False  # flag variable for when a move is made
@@ -60,7 +63,7 @@ def main():
                 location = pygame.mouse.get_pos()  # (x, y) location of mouse
                 col = location[0] // SQ_SIZE
                 row = location[1] // SQ_SIZE
-                if sq_selected == (row, col):  # the user clicked the same square
+                if sq_selected == (row, col) or col >= 10:  # the user clicked the same square or user clicked mouse log
                     sq_selected = ()  # deselect
                     player_clicks = []  # clear player clicks
                     possible_moves_for_selected = []
@@ -102,20 +105,8 @@ def main():
 
         # AI Move Finder Logic
         if not is_human_turn and not game_over and not paused:
-            ai_move = CheckersAI.find_best_move_min_max(gs, 8)
+            ai_move = CheckersAI.find_best_move_min_max(gs, 5)
 
-            # ai_move = CheckersAI.find_random_move(valid_moves)
-            # ai_move = CheckersAI.find_best_move_brute_force(gs)
-            # if gs.white_to_move:
-            #     ai_move = CheckersAI.find_best_move_min_max(gs, 5)
-            # else:
-            #     ai_move = CheckersAI.find_best_move_nega_max(gs, 4)
-            # if gs.white_to_move:
-            #     ai_move = CheckersAI.find_best_move_min_max(gs, 8)
-            # else:
-            #     ai_move = CheckersAI.find_random_move(valid_moves)
-
-            # ai_move = CheckersAI.find_best_move_nega_max(gs)
             if ai_move is None:
                 ai_move = CheckersAI.find_random_move(valid_moves)
 
@@ -125,7 +116,7 @@ def main():
                 for index in range(0, len(ai_move)-1):
                     gs.make_move(ai_move[index], seaching_mode=True)
                     animate_move(gs.move_log[-1], screen, gs.board, clock)
-                    draw_game_state(screen, gs, possible_moves_for_selected, sq_selected)
+                    draw_game_state(screen, gs, possible_moves_for_selected, sq_selected, move_log_font)
                     pygame.display.flip()
                     is_more_than_one_piece_captured = True
                 gs.make_move(ai_move[-1])
@@ -148,35 +139,36 @@ def main():
             move_made = False
             if len(valid_moves) == 0:
                 game_over = True
-                draw_game_state(screen, gs, possible_moves_for_selected, sq_selected)
+                draw_game_state(screen, gs, possible_moves_for_selected, sq_selected, move_log_font)
                 if gs.white_to_move:
                     draw_end_game_text(screen, "Black Wins")
                 else:
                     draw_end_game_text(screen, "White Wins")
 
         if not game_over:
-            draw_game_state(screen, gs, possible_moves_for_selected, sq_selected)
+            draw_game_state(screen, gs, possible_moves_for_selected, sq_selected, move_log_font)
 
         clock.tick(MAX_FPS)
         pygame.display.flip()
 
 
 # Responsible for all the graphics within a current game state.
-def draw_game_state(screen, gs, possible_moves, sq_selected):
+def draw_game_state(screen, gs, possible_moves, sq_selected, move_log_font):
     draw_board(screen)  # draw squares on the board
     highlight_squares(screen, gs, possible_moves, sq_selected)
     draw_pieces(screen, gs.board)  # draw pieces on top of those squares
+    draw_move_log(screen, gs, move_log_font)
 
 
-def draw_end_game_text(screen, text):
-    font = pygame.font.SysFont("Arial", 32, True, False)
-    text_obj = font.render(text, True, pygame.Color("Gray"))
-    text_location = pygame.Rect((WIDTH - text_obj.get_width())//2, (HEIGHT - text_obj.get_height())//2,
-                                text_obj.get_width(), text_obj.get_height())
-    screen.blit(text_obj, text_location)
-    text_obj = font.render(text, True, pygame.Color("Black"))
-    screen.blit(text_obj, text_location.move(2, 2))
-    pygame.display.update()
+# Draw the squares on the board.
+def draw_board(screen):
+    global colors
+    colors = [pygame.Color("white"), pygame.Color("gray")]
+    for row in range(DIMENSION):
+        for col in range(DIMENSION):
+            color = colors[(row + col) % 2]
+            pygame.draw.rect(screen, color, pygame.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+
 
 
 # Highlight square selected and moves for piece selected
@@ -199,16 +191,6 @@ def highlight_squares(screen, gs, possible_moves, sq_selected):
                 screen.blit(surface, (move.end_col * SQ_SIZE, move.end_row * SQ_SIZE))
 
 
-# Draw the squares on the board.
-def draw_board(screen):
-    global colors
-    colors = [pygame.Color("white"), pygame.Color("gray")]
-    for row in range(DIMENSION):
-        for col in range(DIMENSION):
-            color = colors[(row + col) % 2]
-            pygame.draw.rect(screen, color, pygame.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
-
-
 # Draw the pieces on the board using the current GameState.board
 def draw_pieces(screen, board):
     for row in range(DIMENSION):
@@ -216,6 +198,53 @@ def draw_pieces(screen, board):
             piece = board[row][col]
             if piece != "--":  # not empty square
                 screen.blit(IMAGES[piece], pygame.Rect(col * SQ_SIZE, row * SQ_SIZE, SQ_SIZE, SQ_SIZE))
+
+
+# Draw the move log
+def draw_move_log(screen, gs, font):
+    pass
+    move_log_rect = pygame.Rect(BOARD_WIDTH, 0, MOVE_LOG_PANEL_WIDTH, MOVE_LOG_PANEL_HEIGHT)
+    pygame.draw.rect(screen, pygame.Color("black"), move_log_rect)
+
+    move_log = gs.move_log
+    move_texts = []
+
+    move_sequence_number = 1
+    is_white_move = True
+    move_string = ""
+    for i in range(len(move_log)):
+        move = move_log[i]
+        if is_white_move == move.is_white and is_white_move:
+            move_texts.append(move_string)
+            move_string = str(move_sequence_number)
+            move_sequence_number += 1
+
+        move = move_log[i]
+
+        if is_white_move == move.is_white:
+            move_string += "     " + move.get_checkers_col_row_notation()
+
+        else:
+            move_string += move.get_notation_while_capturing()
+
+
+        is_white_move = not move.is_white
+
+    if move_string != "":
+        move_texts.append(move_string)
+
+    # print(len(move_log))
+    padding_x = padding_y = 5
+    y_pos = padding_y
+    new_line_increment_y_by = 20
+
+    adjust_text_starting_index = max(1, (len(move_texts) - MOVE_LOG_PANEL_HEIGHT // (padding_y + new_line_increment_y_by)  ))
+
+    for i in range(adjust_text_starting_index, len(move_texts)):
+        log_text = font.render(move_texts[i], True, pygame.Color("white"))
+        screen.blit(log_text, (BOARD_WIDTH + padding_x, y_pos))
+        y_pos += new_line_increment_y_by
+
 
 
 # animating a move
@@ -242,6 +271,16 @@ def animate_move(move, screen, board, clock):
         pygame.display.flip()
         pygame.display.update()
         clock.tick(60)
+
+def draw_end_game_text(screen, text):
+    font = pygame.font.SysFont("Arial", 32, True, False)
+    text_obj = font.render(text, True, pygame.Color("Gray"))
+    text_location = pygame.Rect((BOARD_WIDTH - text_obj.get_width()) // 2, (BOARD_HEIGHT - text_obj.get_height()) // 2,
+                                text_obj.get_width(), text_obj.get_height())
+    screen.blit(text_obj, text_location)
+    text_obj = font.render(text, True, pygame.Color("Black"))
+    screen.blit(text_obj, text_location.move(2, 2))
+    pygame.display.update()
 
 
 # main function is going to run if CheckersMain is run.

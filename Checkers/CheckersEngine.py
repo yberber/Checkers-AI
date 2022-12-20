@@ -451,15 +451,25 @@ class Move:
         return self.get_square_position(self.start_row, self.start_col), \
                self.get_square_position(self.end_row, self.end_col)
 
+
     def get_square_position(self, row, col):
         if (row, col) in self.row_col_to_square_position:
             return self.row_col_to_square_position[(row, col)]
+
+    def get_checkers_col_row_notation(self):
+        return str(self.start_row) + str(self.start_col) + ("-" if self.captured_piece_pos is None else "x") \
+               + str(self.end_row) + str(self.end_col)
+
+    def get_notation_while_capturing(self):
+        return "x" + str(self.end_row) + str(self.end_col)
+
 
     # Overriding the equals method
     def __eq__(self, other):
         if isinstance(other, Move):
             return self.move_id == other.move_id
 
+    # Overriding the str() function
     def __str__(self):
         return f"({self.start_row}, {self.start_col}) -> ({self.end_row}, {self.end_col}),  " \
                f"x({self.captured_piece})"
